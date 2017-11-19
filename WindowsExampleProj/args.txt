@@ -1,0 +1,55 @@
+//This file works by setting platform name, compile args, compile mod args then linker args
+platform:android:common
+var aapt:C:\NVPACK\android-sdk\build-tools\27.0.0\aapt.exe
+var pack:$aapt package -v -f -I "$androidsdk\platforms\$androidrev\android.jar"
+var dx:C:\NVPACK\android-sdk\build-tools\27.0.0\dx.bat
+var javac:javac.exe -classpath "$androidsdk\platforms\$androidrev\android.jar"
+var androidrev:android-21
+var windowssdk:C:\Program Files (x86)\Windows Kits\10
+var appname:native-activity
+platform:android:debug
+compiler:clang++.exe
+linker:clang++.exe
+outfile:WindowsExampleProj.exe
+outdir:../x64/Debug/
+debugdir:./x64/Debug/
+includes: {
+c:\glew\include\GL
+"c:\Program Files (x86)\Windows Kits\10\Include\10.0.15063.0\um"
+C:\glm\glm
+}
+libDirs: {
+"$windowssdk\Lib\10.0.16299.0\um\x64"
+"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\lib\x64"
+"$windowssdk\Lib\10.0.16299.0\ucrt\x64"
+C:\glew\lib\Release\x64
+}
+libs: {
+msvcrtd.lib
+glew32.lib
+opengl32.lib
+kernel32.lib
+user32.lib
+gdi32.lib
+winspool.lib
+comdlg32.lib
+advapi32.lib
+shell32.lib
+ole32.lib
+oleaut32.lib
+uuid.lib
+odbc32.lib
+odbccp32.lib
+}
+excludelibs {
+}
+moduleDirs: {
+}
+defines: {
+UNICODE
+}
+compileArgs: -Wno-unused-command-line-argument -Wno-pragma-pack -Wno-nonportable-include-path -fno-delayed-template-parsing -g2 -c $infile -o $outfile $defines -fmodules-ts $includes -m64 --target=x86_64-windows-msvc -gcodeview -std=c++2a -O0
+compileModArgs: -Wno-unused-command-line-argument -Wno-pragma-pack -Wno-nonportable-include-path -fno-delayed-template-parsing -g2 -c $infile -o $outfile $defines -fmodules-ts $includes -m64 --target=x86_64-windows-msvc -gcodeview -std=c++2a -O0
+linkArgs: -g2 -fuse-ld=lld $infile -o $outfile $libDirs $excludelibs $libs -m64 --target=x86_64-windows-msvc -std=c++2a -O0 -debug-info-kind=limited
+package: {
+}

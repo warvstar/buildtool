@@ -1,0 +1,69 @@
+//This file works by setting platform name, compile args, compile mod args then linker args
+platform:android:common
+var aapt:C:\NVPACK\android-sdk\build-tools\27.0.0\aapt.exe
+var pack:$aapt package -v -f -I "$androidsdk\platforms\$androidrev\android.jar"
+var dx:C:\NVPACK\android-sdk\build-tools\27.0.0\dx.bat
+var javac:javac.exe -classpath "$androidsdk\platforms\$androidrev\android.jar"
+var androidrev:android-21
+var androidsdk:C:\NVPACK\android-sdk
+var androidndk:c:\NVPACK\android-ndk-r16-beta1
+var appname:nativeactivity
+platform:android:debug
+compiler:clang++.exe
+linker:ld.lld.exe -v
+outfile:libnativeactivity.so
+outdir:../ARM/Debug/
+debugdir:./ARM/Debug/
+gcc-toolchain:C:/NVPACK/android-sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/windows-x86_64 
+sysroot:C:/NVPACK/android-sdk/ndk-bundle/sysroot
+sysrootLinker:C:/NVPACK/android-sdk/ndk-bundle/platforms/android-21/arch-arm
+includes: {
+$androidndk\sources\cxx-stl\llvm-libc++\include
+$androidndk/sysroot/usr/include/arm-linux-androideabi
+$androidndk\sources\android\native_app_glue
+}
+libDirs: {
+$androidndk\\toolchains\\llvm\\prebuilt\\windows-x86_64\\lib64\\clang\\5.0.300080\\lib\\linux\\arm
+$androidndk/toolchains/arm-linux-androideabi-4.9/prebuilt/windows-x86_64/arm-linux-androideabi/lib/armv7-a/thumb
+$androidndk/platforms/android-21/arch-arm/usr/lib
+$androidndk/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a
+$androidndk/build/toolchain/lib/gcc/arm-linux-androideabi/4.9.x/armv7-a/thumb
+}
+libs: {
+$androidndk/platforms/android-21/arch-arm/usr/lib/crtbegin_so.o
+android
+libnative_app_glue.a
+EGL
+GLESv1_CM
+atomic
+m
+log
+c++
+dl
+c
+$androidndk/platforms/android-21/arch-arm/usr/lib/crtend_so.o
+}
+excludelibs {
+libgcc.a
+libatomic.a
+}
+moduleDirs: {
+}
+defines: {
+native_activity_EXPORTS
+__ANDROID_API__=21
+ANDROID
+}
+compileArgs: -c $infile -o $outfile $defines -fmodules-ts --target=armv7-none-linux-androideabi --gcc-toolchain=$gcc-toolchain --sysroot=$sysroot $includes -g -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-integrated-as -mthumb -Wa,--noexecstack -Wformat -Werror=format-security -std=c++2a -O0 -fno-limit-debug-info -fPIC -MD -Wno-unused-command-line-argument
+compileModArgs: -c $infile -o $outfile -fmodules-ts --target=armv7-none-linux-androideabi --gcc-toolchain=$gcc-toolchain --sysroot=$sysroot $includes -g -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fno-integrated-as -mthumb -Wa,--noexecstack -Wformat -Werror=format-security -std=c++2a -O0 -fno-limit-debug-info -fPIC -MD -Wno-unused-command-line-argument
+linkArgs: $infile --sysroot=$sysrootLinker -X --eh-frame-hdr -m armelf_linux_eabi -shared -o $outfile $libDirs $excludelibs $libs -u ANativeActivity_onCreate -build-id --warn-shared-textrel --fatal-warnings --no-undefined -z noexecstack -z relro -z now -soname $outfile
+package: {
+rmdir "gen" /S /Q
+mkdir "gen"
+$pack -M "AndroidManifest.xml" -A "assets" -S "res" -m -J "gen" -F "./ARM/Debug/resources.ap_"
+move "ARM\Debug\resources.ap_" "ARM\Debug\$appname.ap_"
+copy "../ARM/Debug/$outfile" "lib/armeabi-v7a/$outfile"
+$aapt add "./ARM/Debug/$appname.ap_" lib/armeabi-v7a/$outfile
+jarsigner -keystore ".\keystore\my-release-key.keystore" -storepass "password" -keypass "password" -signedjar "..\ARM\Debug\$appname.apk" ".\ARM\Debug\$appname.ap_" "alias_name"
+C:\NVPACK\android-sdk\platform-tools\adb.exe install -r ../ARM/Debug/$appname.apk
+}
